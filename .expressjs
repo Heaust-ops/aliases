@@ -1,0 +1,63 @@
+### Express JS Server
+# usage: express <options>
+express ()
+{
+  case $1 in
+    setup)
+      cp ~/aliases/boilerplates/express/package.json ./package.json
+      yarn
+      yarn add express body-parser cors dotenv mongoose
+      yarn add nodemon -D
+      echo DB_URI=mongodb://127.0.0.1:27017 > .env
+      cp ~/aliases/boilerplates/LICENSE ./LICENSE
+      cp ~/aliases/boilerplates/README.md ./README.md
+      echo 'node_modules' > .gitignore
+      echo '.env' >> .gitignore
+      mkdir models
+      mkdir routes
+
+    case $2 in
+      auth)
+      yarn add @hapi/joi jsonwebtoken bcryptjs
+      cp ~/aliases/boilerplates/express/auth_server.js ./server.js
+      cp ~/aliases/boilerplates/express/user-model.js ./models/User.js
+      cp ~/aliases/boilerplates/express/auth-route.js ./routes/auth.js
+      cp ~/aliases/boilerplates/express/verifyToken-middleware.js ./routes/verifyToken.js
+      cp ~/aliases/boilerplates/express/joi-validation.js ./validation.js
+      echo 'TOKEN_SECRET=erfgyhjkdfvhjkerfgyhui' >> .env ;;
+
+      *) cp ~/aliases/boilerplates/express/minimal_server.js ./server.js ;;
+      esac ;;
+
+    addmodel)
+  echo "const mongoose = require('mongoose');
+
+const $(echo $2 | sed 's/\b./\u&/g')Schema = mongoose.Schema({
+    entity1: {
+        type: String,
+        required: true
+    },
+    entity2: {
+        type: String,
+        required: true,
+        unique: true
+    }
+});
+
+module.exports = mongoose.model('$(echo $2 | sed 's/\b./\u&/g')', $(echo $2 | sed 's/\b./\u&/g')Schema);" > ./models/$(echo $2 | sed 's/\b./\u&/g').js ;;
+  addroute)
+  echo "const express = require('express');
+
+const router = express.Router();
+
+router.get('/', (req, res) => {
+    res.send('We are on $(echo $2 | tr [A-Z] [a-z]) page');
+});
+
+module.exports = router;" > ./routes/$(echo $2 | tr [A-Z] [a-z]).js
+
+  sed -i  "/Import Routes/ a const $(echo $2 | tr [A-Z] [a-z])Route = require('./routes/$(echo $2 | tr [A-Z] [a-z])');" server.js
+  sed -i  "/Use Routes/ a app.use('/$(echo $2 | tr [A-Z] [a-z])', $(echo $2 | tr [A-Z] [a-z])Route);" server.js  ;;
+
+  esac
+}
