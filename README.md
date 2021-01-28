@@ -1,5 +1,5 @@
 # My Bash Aliases
-* just include all bash scripts in the root directory in your aliases
+* just include all bash scripts in the root directory (.bash_aliases and .expressjs) in your .bashrc
 * I take full credit for everything in .expressjs but not in .bash_aliases
 
 ## How to use .expressjs
