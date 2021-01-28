@@ -1,5 +1,6 @@
 # My Bash Aliases
-* just include all bash scripts in the root directory (.bash_aliases and .expressjs) in your .bashrc
+* all contents in the root folder should be kept in the location ~/aliases
+* include all bash scripts (.bash_aliases and .expressjs) in the root directory (~/aliases) in your .bashrc
 * I take full credit for everything in .expressjs but not in .bash_aliases
 
 ## How to use .expressjs
