@@ -6,5 +6,5 @@
 In your project directory
 * use for minimal express setup: express setup
 * use for express setup with auth: express setup auth
-* use to add new route: express addroute <route name>
-* use to add new mongoose model: express addmodel <model name>
+* use to add new route: express addroute route_name
+* use to add new mongoose model: express addmodel model_name
