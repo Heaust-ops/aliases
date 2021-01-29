@@ -41,6 +41,9 @@ powermode ()
   esac
 }
 
+# svelte setup
+	alias svelte="unzip ~/aliases/boilerplates/svelte/svelte.zip -d ./ && mv ./template-master/** . && mv ./template-master/.gitignore . && rm -rf ./template-master && yarn"
+
 ### Add React Functional Component
 # usage: rfc <component_name>
 rfc ()
