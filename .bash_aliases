@@ -1,6 +1,10 @@
 # Shutdown
 alias sd="systemctl poweroff"
 
+# Pacman shorts
+alias add="sudo pacman -S"
+alias remove="sudo pacman -Rs"
+
 ### ARCHIVE EXTRACTION
 # usage: extract <file>
 extract ()
