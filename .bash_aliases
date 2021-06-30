@@ -5,6 +5,13 @@ alias sd="systemctl poweroff"
 alias add="sudo pacman -S"
 alias remove="sudo pacman -Rs"
 
+# Proton vpn
+alias vpn="sudo protonvpn c"
+alias vpnoff="sudo protonvpn d"
+
+# kamoso
+alias camera="kamoso"
+
 ### ARCHIVE EXTRACTION
 # usage: extract <file>
 extract ()
@@ -78,6 +85,9 @@ mkcd ()
 mkdir $1
 cd $1
 }
+
+# add css scoper for react
+alias scopecss='cp ~/aliases/boilerplates/react/scopeCss.js ./'
 
 # navigation
 alias ..='cd ..' 
