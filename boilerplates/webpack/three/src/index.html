@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        *,
+        html,
+        body {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        canvas {
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script defer type="module" src="./index.js"></script>
+    <title>Generic</title>
+</head>
+
+<body>
+
+    <div
+        id="frame-rate-container"
+        style="position: fixed; z-index: 5; color: white; top: 0; left: 0; right: 0; text-align: center; display: none;">
+        <div style="background: rgba(0,0,0, 0.5); display: inline-block; padding: 0.5rem; border-bottom-right-radius: 0.4rem; border-bottom-left-radius: 0.4rem;"><h2 id="frame-rate"></h2></div>
+    </div>
+
+</body>
+
+</html>

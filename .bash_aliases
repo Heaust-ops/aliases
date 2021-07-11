@@ -58,16 +58,17 @@ webpack ()
 {
   cp ~/aliases/boilerplates/webpack/webpack.config.js ./
   cp ~/aliases/boilerplates/webpack/package.json ./
-  mkdir dist
   yarn
   case $1 in
     three)
-      cp -r ~/aliases/boilerplates/webpack/threesrc ./src
+      cp -r ~/aliases/boilerplates/webpack/three/src ./src
+      cp -r ~/aliases/boilerplates/webpack/three/dist ./dist
       yarn add three ;;
     *) echo " Invalid Argument: Choose from - three, <no argument> "   ;;
   esac
   if [ "$#" -eq 0 ]; then
     cp -r ~/aliases/boilerplates/webpack/src ./src
+    mkdir dist
   fi
   yarn run dev
 
