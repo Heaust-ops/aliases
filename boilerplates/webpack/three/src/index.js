@@ -1,25 +1,11 @@
 import Base from "./lib/base";
 import CharacterController from "./lib/CharacterController";
 
-const random = (min, max) => {
-  // min and max included
-  return Math.floor(Math.random() * (max - min + 1) + min);
-};
-
-const randomColor = () => {
-  let color = "#";
-  for (let i = 0; i < 6; i++) {
-    const random = Math.random();
-    const bit = (random * 16) | 0;
-    color += bit.toString(16);
-  }
-  return color;
-};
-
 const base = new Base({
   customInitFunc: (parent) => {
     // Custom Init Function
   },
+  debug: true,
 });
 base.frameRateDisplay();
 const plane = base.addPlane({
@@ -29,16 +15,18 @@ const plane = base.addPlane({
 });
 let boxes = [];
 let coords = [];
-let tmp = [random(-30, 30) * 3, 2, random(-30, 30) * 3];
+let tmp = [base.random(-30, 30) * 3, 2, base.random(-30, 30) * 3];
+const randBoxGroup = base.addDebugFolder("Random Boxes");
 for (let i = 0; i < 50; i++) {
   while (coords.includes(tmp))
-    tmp = [random(-30, 30) * 3, 5, random(-30, 30) * 3];
+    tmp = [base.random(-30, 30) * 3, 5, base.random(-30, 30) * 3];
   coords.push(tmp);
   boxes.push(
     base.addBox({
       pos: tmp,
-      color: randomColor(),
+      color: base.randomColor(),
       bumpMap: "./resources/texture/bump.jpg",
+      debugFolder: randBoxGroup
     })
   );
 }
@@ -83,3 +71,8 @@ document.addEventListener(
   },
   false
 );
+
+base.addBufferGeometry({
+  float32array: [1, 1, 1, 1, 10, 1, 10, 1, 1],
+  color: "#223344",
+});

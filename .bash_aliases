@@ -63,7 +63,7 @@ webpack ()
     three)
       cp -r ~/aliases/boilerplates/webpack/three/src ./src
       cp -r ~/aliases/boilerplates/webpack/three/dist ./dist
-      yarn add three ;;
+      yarn add three dat.gui gsap ;;
     *) echo " Invalid Argument: Choose from - three, <no argument> "   ;;
   esac
   if [ "$#" -eq 0 ]; then

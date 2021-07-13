@@ -3,13 +3,19 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 import TPPCamera from "./TPPCamera";
+import * as dat from "dat.gui";
+import gsap from "gsap";
 
 class Base {
-  constructor({ customInitFunc = false, ambientLight = 0x404040 } = {}) {
-    this._Initialize({ ambientLight, customInitFunc });
+  constructor({
+    customInitFunc = false,
+    ambientLight = 0x404040,
+    debug = false,
+  } = {}) {
+    this._Initialize({ ambientLight, customInitFunc, debug });
   }
 
-  _Initialize({ ambientLight, customInitFunc } = {}) {
+  _Initialize({ ambientLight, customInitFunc, debug } = {}) {
     this._renderer = new THREE.WebGLRenderer();
     this._renderer.shadowMap.enabled = true;
     this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -39,10 +45,129 @@ class Base {
     this._frameRateDisplayContainer = document.getElementById(
       "frame-rate-container"
     );
+    this._textureLoader = new THREE.TextureLoader();
+    this._cubeTextureLoader = new THREE.CubeTextureLoader();
+
+    this._debug = debug;
+    if (this._debug) this._gui = new dat.GUI({ width: 400 });
 
     if (customInitFunc) customInitFunc(this);
 
     this._RAF();
+  }
+
+  addDebugFolder(name = "generic" + this.random(0, 10000), parent = this._gui) {
+    return parent.addFolder(name);
+  }
+
+  debugBasicMesh({
+    debugMesh = false,
+    debug = true,
+    color = "#223344",
+    debugName = "genericMesh" + this.random(0, 10000),
+    debugPosMin = [-100, -100, -100],
+    debugPosMax = [100, 100, 100],
+    debugRotMin = [-Math.PI, -Math.PI, -Math.PI],
+    debugRotMax = [Math.PI, Math.PI, Math.PI],
+    debugPosStep = 0.01,
+    debugRotStep = 0.01,
+    debugFolder = this._gui,
+  } = {}) {
+    if (debug && this._debug && debugMesh) {
+      const folder = debugFolder.addFolder(debugName);
+      const parameters = {
+        color,
+        spinX: () => {
+          gsap.to(debugMesh.rotation, {
+            duration: 1,
+            x: debugMesh.rotation.x + Math.PI * 2,
+          });
+        },
+        spinY: () => {
+          gsap.to(debugMesh.rotation, {
+            duration: 1,
+            y: debugMesh.rotation.y + Math.PI * 2,
+          });
+        },
+        spinZ: () => {
+          gsap.to(debugMesh.rotation, {
+            duration: 1,
+            z: debugMesh.rotation.z + Math.PI * 2,
+          });
+        },
+      };
+      folder
+        .add(debugMesh.position, "x")
+        .min(debugPosMin[0])
+        .max(debugPosMax[0])
+        .step(
+          debugPosStep.constructor === Array ? debugPosStep[0] : debugPosStep
+        )
+        .name("pos-x");
+      folder
+        .add(debugMesh.position, "y")
+        .min(debugPosMin[1])
+        .max(debugPosMax[1])
+        .step(
+          debugPosStep.constructor === Array ? debugPosStep[1] : debugPosStep
+        )
+        .name("pos-y");
+      folder
+        .add(debugMesh.position, "z")
+        .min(debugPosMin[2])
+        .max(debugPosMax[2])
+        .step(
+          debugPosStep.constructor === Array ? debugPosStep[2] : debugPosStep
+        )
+        .name("pos-z");
+      folder
+        .add(debugMesh.rotation, "x")
+        .min(debugRotMin[0])
+        .max(debugRotMax[0])
+        .step(
+          debugRotStep.constructor === Array ? debugRotStep[0] : debugRotStep
+        )
+        .name("rot-x");
+      folder
+        .add(debugMesh.rotation, "y")
+        .min(debugRotMin[1])
+        .max(debugRotMax[1])
+        .step(
+          debugRotStep.constructor === Array ? debugRotStep[1] : debugRotStep
+        )
+        .name("rot-y");
+      folder
+        .add(debugMesh.rotation, "z")
+        .min(debugRotMin[2])
+        .max(debugRotMax[2])
+        .step(
+          debugRotStep.constructor === Array ? debugRotStep[2] : debugRotStep
+        )
+        .name("rot-z");
+      folder.add(debugMesh, "visible");
+      if (debugMesh.material) folder.add(debugMesh.material, "wireframe");
+      folder.add(parameters, "spinX");
+      folder.add(parameters, "spinY");
+      folder.add(parameters, "spinZ");
+      if (debugMesh.material) folder.addColor(parameters, "color").onChange(() => {
+        debugMesh.material.color.set(parameters.color);
+      });
+    }
+  }
+
+  random(min, max) {
+    // min and max included
+    return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
+  randomColor() {
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+      const random = Math.random();
+      const bit = (random * 16) | 0;
+      color += bit.toString(16);
+    }
+    return color;
   }
 
   lockTPPCamera(
@@ -93,6 +218,8 @@ class Base {
       pos,
     });
 
+    // console.log(this._controls.position)
+
     return this._controls;
   }
 
@@ -124,8 +251,7 @@ class Base {
 
   skybox(param) {
     // param will be an array of image paths
-    const loader = new THREE.CubeTextureLoader();
-    const texture = loader.load(param);
+    const texture = this._cubeTextureLoader.load(param);
     this._scene.background = texture;
   }
 
@@ -164,10 +290,59 @@ class Base {
     this._animations.splice(id, 1);
   }
 
+  addBufferGeometry({
+    float32array = [0, 0, 0, 0, 1, 0, 1, 0, 0],
+    vertexLength = 3,
+    color = 0x808080,
+    pos = [0, 0, 0],
+    castShadow = true,
+    receiveShadow = true,
+    rotationX = 0,
+    rotationY = 0,
+    rotationZ = 0,
+    map = false,
+    bumpMap = false,
+    normalMap = false,
+    wireframe = false,
+  } = {}) {
+    const positionArray = new Float32Array(
+      float32array.map((e, i) => {
+        return e + pos[i % 3];
+      })
+    );
+    const positionsAttribute = new THREE.BufferAttribute(
+      positionArray,
+      vertexLength
+    );
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", positionsAttribute);
+    const a = map ? { map: this._textureLoader.load(map) } : {};
+    const b = bumpMap
+      ? { bumpMap: this._textureLoader.load(bumpMap) }
+      : {};
+    const c = normalMap
+      ? { normalMap: this._textureLoader.load(normalMap) }
+      : {};
+    const d = map ? {} : { color: color };
+    const meshParams = { ...a, ...b, ...c, ...d, wireframe };
+    const bufferMesh = new THREE.Mesh(
+      geometry,
+      new THREE.MeshStandardMaterial(meshParams)
+    );
+    bufferMesh.position.set(...pos);
+    bufferMesh.castShadow = castShadow;
+    bufferMesh.receiveShadow = receiveShadow;
+    bufferMesh.rotation.x = rotationX;
+    bufferMesh.rotation.y = rotationY;
+    bufferMesh.rotation.z = rotationZ;
+    this._scene.add(bufferMesh);
+    return bufferMesh;
+  }
+
   addPlane({
     color = 0x808080,
     dimensions = [100, 100],
-    segmentation = [1, 1],
+    segments = [1, 1],
     pos = [0, 0, 0],
     castShadow = true,
     receiveShadow = true,
@@ -177,18 +352,28 @@ class Base {
     map = false,
     bumpMap = false,
     normalMap = false,
+    wireframe = false,
+    debug = true,
+    debugName = "plane" + this.random(0, 10000),
+    debugPosMin = [-100, -100, -100],
+    debugPosMax = [100, 100, 100],
+    debugRotMin = [-Math.PI, -Math.PI, -Math.PI],
+    debugRotMax = [Math.PI, Math.PI, Math.PI],
+    debugPosStep = 0.01,
+    debugRotStep = 0.01,
+    debugFolder = this._gui,
   } = {}) {
-    const a = map ? { map: new THREE.TextureLoader().load(map) } : {};
+    const a = map ? { map: this._textureLoader.load(map) } : {};
     const b = bumpMap
-      ? { bumpMap: new THREE.TextureLoader().load(bumpMap) }
+      ? { bumpMap: this._textureLoader.load(bumpMap) }
       : {};
     const c = normalMap
-      ? { normalMap: new THREE.TextureLoader().load(normalMap) }
+      ? { normalMap: this._textureLoader.load(normalMap) }
       : {};
     const d = map ? {} : { color: color };
-    const meshParams = { ...a, ...b, ...c, ...d };
+    const meshParams = { ...a, ...b, ...c, ...d, wireframe };
     const plane = new THREE.Mesh(
-      new THREE.PlaneGeometry(...dimensions, ...segmentation),
+      new THREE.PlaneBufferGeometry(...dimensions, ...segments),
       new THREE.MeshStandardMaterial(meshParams)
     );
     plane.position.set(...pos);
@@ -198,12 +383,31 @@ class Base {
     plane.rotation.y = rotationY;
     plane.rotation.z = rotationZ;
     this._scene.add(plane);
+
+    /**
+     * Debug
+     */
+    this.debugBasicMesh({
+      debugMesh: plane,
+      debug,
+      color,
+      debugName,
+      debugPosMin,
+      debugPosMax,
+      debugRotMin,
+      debugRotMax,
+      debugPosStep,
+      debugRotStep,
+      debugFolder,
+    });
+
     return plane;
   }
 
   addBox({
     color = 0x202020,
     dimensions = [2, 2, 2],
+    segments = [1, 1, 1],
     pos = [0, 2, 0],
     castShadow = true,
     receiveShadow = true,
@@ -213,18 +417,28 @@ class Base {
     map = false,
     bumpMap = false,
     normalMap = false,
+    wireframe = false,
+    debug = true,
+    debugName = "box" + this.random(0, 10000),
+    debugPosMin = [-100, -100, -100],
+    debugPosMax = [100, 100, 100],
+    debugRotMin = [-Math.PI, -Math.PI, -Math.PI],
+    debugRotMax = [Math.PI, Math.PI, Math.PI],
+    debugPosStep = 0.01,
+    debugRotStep = 0.01,
+    debugFolder = this._gui,
   } = {}) {
-    const a = map ? { map: new THREE.TextureLoader().load(map) } : {};
+    const a = map ? { map: this._textureLoader.load(map) } : {};
     const b = bumpMap
-      ? { bumpMap: new THREE.TextureLoader().load(bumpMap) }
+      ? { bumpMap: this._textureLoader.load(bumpMap) }
       : {};
     const c = normalMap
-      ? { normalMap: new THREE.TextureLoader().load(normalMap) }
+      ? { normalMap: this._textureLoader.load(normalMap) }
       : {};
     const d = map ? {} : { color: color };
-    const meshParams = { ...a, ...b, ...c, ...d };
+    const meshParams = { ...a, ...b, ...c, ...d, wireframe };
     const box = new THREE.Mesh(
-      new THREE.BoxGeometry(...dimensions),
+      new THREE.BoxBufferGeometry(...dimensions, ...segments),
       new THREE.MeshStandardMaterial(meshParams)
     );
     box.position.set(...pos);
@@ -234,6 +448,24 @@ class Base {
     box.rotation.y = rotationY;
     box.rotation.z = rotationZ;
     this._scene.add(box);
+
+    /**
+     * Debug
+     */
+     this.debugBasicMesh({
+      debugMesh: box,
+      debug,
+      color,
+      debugName,
+      debugPosMin,
+      debugPosMax,
+      debugRotMin,
+      debugRotMax,
+      debugPosStep,
+      debugRotStep,
+      debugFolder,
+    });
+
     return box;
   }
 
@@ -284,6 +516,11 @@ class Base {
       });
       gltf.scene.position.copy(new THREE.Vector3(...pos));
       this._scene.add(gltf.scene);
+      this.debugBasicMesh({
+        debugMesh: gltf.scene,
+        debug: true,
+        debugName: "GLTFModel" + this.random(0,10000),
+      });
     });
   }
 
@@ -338,8 +575,9 @@ class Base {
 
   frameRateDisplay(toggle = "toggle") {
     const frameratestep = (t) => {
-      if (Math.floor(Date.now()/1000)%2==0) this._frameRateDisplay.innerHTML = "frame rate: " + Math.floor(1 / t);
-    }
+      if (Math.floor(Date.now() / 1000) % 2 == 0)
+        this._frameRateDisplay.innerHTML = "frame rate: " + Math.floor(1 / t);
+    };
     if (toggle == "toggle") {
       if (this._frameRateDisplayContainer.style.display == "none") {
         this._frameRateDisplayContainer.style.display = "block";
