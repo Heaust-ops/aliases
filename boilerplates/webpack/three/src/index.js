@@ -8,7 +8,7 @@ const base = new Base({
   debug: true,
 });
 base.frameRateDisplay();
-const plane = base.addPlane({
+const plane = base.addShape( "Plane", {
   dimensions: [300, 300],
   color: "#223344",
   bumpMap: "./resources/texture/bump.jpg",
@@ -22,7 +22,7 @@ for (let i = 0; i < 50; i++) {
     tmp = [base.random(-30, 30) * 3, 5, base.random(-30, 30) * 3];
   coords.push(tmp);
   boxes.push(
-    base.addBox({
+    base.addShape("Box", {
       pos: tmp,
       color: base.randomColor(),
       bumpMap: "./resources/texture/bump.jpg",

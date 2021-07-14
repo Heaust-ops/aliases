@@ -149,9 +149,10 @@ class Base {
       folder.add(parameters, "spinX");
       folder.add(parameters, "spinY");
       folder.add(parameters, "spinZ");
-      if (debugMesh.material) folder.addColor(parameters, "color").onChange(() => {
-        debugMesh.material.color.set(parameters.color);
-      });
+      if (debugMesh.material)
+        folder.addColor(parameters, "color").onChange(() => {
+          debugMesh.material.color.set(parameters.color);
+        });
     }
   }
 
@@ -317,9 +318,7 @@ class Base {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", positionsAttribute);
     const a = map ? { map: this._textureLoader.load(map) } : {};
-    const b = bumpMap
-      ? { bumpMap: this._textureLoader.load(bumpMap) }
-      : {};
+    const b = bumpMap ? { bumpMap: this._textureLoader.load(bumpMap) } : {};
     const c = normalMap
       ? { normalMap: this._textureLoader.load(normalMap) }
       : {};
@@ -339,56 +338,102 @@ class Base {
     return bufferMesh;
   }
 
-  addPlane({
-    color = 0x808080,
-    dimensions = [100, 100],
-    segments = [1, 1],
-    pos = [0, 0, 0],
-    castShadow = true,
-    receiveShadow = true,
-    rotationX = -Math.PI / 2,
-    rotationY = 0,
-    rotationZ = 0,
-    map = false,
-    bumpMap = false,
-    normalMap = false,
-    wireframe = false,
-    debug = true,
-    debugName = "plane" + this.random(0, 10000),
-    debugPosMin = [-100, -100, -100],
-    debugPosMax = [100, 100, 100],
-    debugRotMin = [-Math.PI, -Math.PI, -Math.PI],
-    debugRotMax = [Math.PI, Math.PI, Math.PI],
-    debugPosStep = 0.01,
-    debugRotStep = 0.01,
-    debugFolder = this._gui,
-  } = {}) {
+  addShape(
+    shape,
+    {
+      color = 0x808080,
+      dimensions = false,
+      segments = false,
+      pos = [0, 0, 0],
+      castShadow = true,
+      receiveShadow = true,
+      rotationX = -Math.PI / 2,
+      rotationY = 0,
+      rotationZ = 0,
+      map = false,
+      bumpMap = false,
+      normalMap = false,
+      wireframe = false,
+      debug = true,
+      debugName = shape + this.random(0, 10000),
+      debugPosMin = [-100, -100, -100],
+      debugPosMax = [100, 100, 100],
+      debugRotMin = [-Math.PI, -Math.PI, -Math.PI],
+      debugRotMax = [Math.PI, Math.PI, Math.PI],
+      debugPosStep = 0.01,
+      debugRotStep = 0.01,
+      debugFolder = this._gui,
+    } = {}
+  ) {
+    let geometry;
+    let dim;
+    let seg;
+    switch (shape.toLowerCase()) {
+      case "plane":
+        dim = dimensions ? dimensions : [100, 100];
+        seg = segments ? segments : [1, 1];
+        geometry = new THREE.PlaneBufferGeometry(...dim, ...seg);
+        break;
+      case "circle":
+        dim = dimensions ? dimensions : [5];
+        seg = segments ? segments : [32];
+        geometry = new THREE.PlaneBufferGeometry(...dim, ...seg);
+        break;
+      case "cube":
+      case "box":
+        dim = dimensions ? dimensions : [2, 2, 2];
+        seg = segments ? segments : [1, 1, 1];
+        geometry = new THREE.BoxBufferGeometry(...dim, ...seg);
+        break;
+      case "sphere":
+        dim = dimensions ? dimensions : [2];
+        seg = segments ? segments : [32, 32];
+        geometry = new THREE.SphereBufferGeometry(...dim, ...seg);
+        break;
+      case "torus":
+        dim = dimensions ? dimensions : [10, 3];
+        seg = segments ? segments : [16, 100];
+        geometry = new THREE.TorusBufferGeometry(...dim, ...seg);
+        break;
+      case "cone":
+        dim = dimensions ? dimensions : [1, 4];
+        seg = segments ? segments : [8, 1];
+        geometry = new THREE.ConeBufferGeometry(...dim, ...seg);
+        break;
+      case "cylinder":
+        dim = dimensions ? dimensions : [5, 5];
+        seg = segments ? segments : [20, 32];
+        geometry = new THREE.CylinderBufferGeometry(...dim, ...seg);
+        break;
+      default:
+        console.log("Cannot Find the Shape: " + shape);
+        return;
+    }
+
     const a = map ? { map: this._textureLoader.load(map) } : {};
-    const b = bumpMap
-      ? { bumpMap: this._textureLoader.load(bumpMap) }
-      : {};
+    const b = bumpMap ? { bumpMap: this._textureLoader.load(bumpMap) } : {};
     const c = normalMap
       ? { normalMap: this._textureLoader.load(normalMap) }
       : {};
     const d = map ? {} : { color: color };
     const meshParams = { ...a, ...b, ...c, ...d, wireframe };
-    const plane = new THREE.Mesh(
-      new THREE.PlaneBufferGeometry(...dimensions, ...segments),
+    const mesh = new THREE.Mesh(
+      geometry,
       new THREE.MeshStandardMaterial(meshParams)
     );
-    plane.position.set(...pos);
-    plane.castShadow = castShadow;
-    plane.receiveShadow = receiveShadow;
-    plane.rotation.x = rotationX;
-    plane.rotation.y = rotationY;
-    plane.rotation.z = rotationZ;
-    this._scene.add(plane);
+    mesh.position.set(...pos);
+    mesh.castShadow = castShadow;
+    mesh.receiveShadow = receiveShadow;
+    mesh.rotation.x = rotationX;
+    mesh.rotation.y = rotationY;
+    mesh.rotation.z = rotationZ;
+    this._scene.add(mesh);
 
     /**
      * Debug
      */
     this.debugBasicMesh({
-      debugMesh: plane,
+      debugMesh: mesh,
       debug,
       color,
       debugName,
@@ -401,74 +446,9 @@ class Base {
       debugFolder,
     });
 
-    return plane;
+    return mesh;
   }
-
-  addBox({
-    color = 0x202020,
-    dimensions = [2, 2, 2],
-    segments = [1, 1, 1],
-    pos = [0, 2, 0],
-    castShadow = true,
-    receiveShadow = true,
-    rotationX = 0,
-    rotationY = 0,
-    rotationZ = 0,
-    map = false,
-    bumpMap = false,
-    normalMap = false,
-    wireframe = false,
-    debug = true,
-    debugName = "box" + this.random(0, 10000),
-    debugPosMin = [-100, -100, -100],
-    debugPosMax = [100, 100, 100],
-    debugRotMin = [-Math.PI, -Math.PI, -Math.PI],
-    debugRotMax = [Math.PI, Math.PI, Math.PI],
-    debugPosStep = 0.01,
-    debugRotStep = 0.01,
-    debugFolder = this._gui,
-  } = {}) {
-    const a = map ? { map: this._textureLoader.load(map) } : {};
-    const b = bumpMap
-      ? { bumpMap: this._textureLoader.load(bumpMap) }
-      : {};
-    const c = normalMap
-      ? { normalMap: this._textureLoader.load(normalMap) }
-      : {};
-    const d = map ? {} : { color: color };
-    const meshParams = { ...a, ...b, ...c, ...d, wireframe };
-    const box = new THREE.Mesh(
-      new THREE.BoxBufferGeometry(...dimensions, ...segments),
-      new THREE.MeshStandardMaterial(meshParams)
-    );
-    box.position.set(...pos);
-    box.castShadow = castShadow;
-    box.receiveShadow = receiveShadow;
-    box.rotation.x = rotationX;
-    box.rotation.y = rotationY;
-    box.rotation.z = rotationZ;
-    this._scene.add(box);
-
-    /**
-     * Debug
-     */
-     this.debugBasicMesh({
-      debugMesh: box,
-      debug,
-      color,
-      debugName,
-      debugPosMin,
-      debugPosMax,
-      debugRotMin,
-      debugRotMax,
-      debugPosStep,
-      debugRotStep,
-      debugFolder,
-    });
-
-    return box;
-  }
-
+  
   _OnWindowResize() {
     if (this._aspect == "w/h")
       this._camera.aspect = window.innerWidth / window.innerHeight;
@@ -519,7 +499,7 @@ class Base {
       this.debugBasicMesh({
         debugMesh: gltf.scene,
         debug: true,
-        debugName: "GLTFModel" + this.random(0,10000),
+        debugName: "GLTFModel" + this.random(0, 10000),
       });
     });
   }
