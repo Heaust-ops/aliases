@@ -6,8 +6,8 @@ alias add="sudo pacman -S"
 alias remove="sudo pacman -Rs"
 
 # Proton vpn
-alias vpn="sudo protonvpn c"
-alias vpnoff="sudo protonvpn d"
+alias vpn="protonvpn-cli c"
+alias vpnoff="protonvpn-cli d"
 
 # kamoso
 alias camera="kamoso"
